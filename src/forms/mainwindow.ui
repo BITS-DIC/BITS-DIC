@@ -20,15 +20,18 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menuInput">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>Input</string>
+     <string>File</string>
     </property>
     <addaction name="actionLoad_Reference_Image"/>
     <addaction name="actionLoad_Current_Image_s"/>
+    <addaction name="actionReset_all"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuParameters">
     <property name="title">
@@ -49,10 +52,20 @@
     </property>
     <addaction name="actionShow_Graphs"/>
    </widget>
-   <addaction name="menuInput"/>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+    <addaction name="actionChangelog"/>
+    <addaction name="actionDocumentation"/>
+    <addaction name="actionContribute"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menuParameters"/>
    <addaction name="menuRun"/>
    <addaction name="menuOutput"/>
+   <addaction name="menuHelp"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -91,6 +104,36 @@
   <action name="actionShow_Graphs">
    <property name="text">
     <string>Show Graphs</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>About</string>
+   </property>
+  </action>
+  <action name="actionChangelog">
+   <property name="text">
+    <string>Changelog</string>
+   </property>
+  </action>
+  <action name="actionDocumentation">
+   <property name="text">
+    <string>Documentation</string>
+   </property>
+  </action>
+  <action name="actionContribute">
+   <property name="text">
+    <string>Contribute</string>
+   </property>
+  </action>
+  <action name="actionReset_all">
+   <property name="text">
+    <string>Reset all</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
    </property>
   </action>
  </widget>
