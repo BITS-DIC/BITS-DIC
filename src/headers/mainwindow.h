@@ -1,5 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
+#define WINDOW_TITLE "BITS-DIC"
 
 #include <QMainWindow>
 

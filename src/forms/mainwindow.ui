@@ -20,9 +20,39 @@
      <x>0</x>
      <y>0</y>
      <width>400</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuInput">
+    <property name="title">
+     <string>Input</string>
+    </property>
+    <addaction name="actionLoad_Reference_Image"/>
+    <addaction name="actionLoad_Current_Image_s"/>
+   </widget>
+   <widget class="QMenu" name="menuParameters">
+    <property name="title">
+     <string>Parameters</string>
+    </property>
+    <addaction name="actionSet_Region_of_Interest_ROI"/>
+    <addaction name="actionSet_DIC_Parameters"/>
+   </widget>
+   <widget class="QMenu" name="menuRun">
+    <property name="title">
+     <string>Run</string>
+    </property>
+    <addaction name="actionPerform_DIC_Analysis"/>
+   </widget>
+   <widget class="QMenu" name="menuOutput">
+    <property name="title">
+     <string>Output</string>
+    </property>
+    <addaction name="actionShow_Graphs"/>
+   </widget>
+   <addaction name="menuInput"/>
+   <addaction name="menuParameters"/>
+   <addaction name="menuRun"/>
+   <addaction name="menuOutput"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -33,6 +63,36 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionLoad_Reference_Image">
+   <property name="text">
+    <string>Load Reference Image</string>
+   </property>
+  </action>
+  <action name="actionLoad_Current_Image_s">
+   <property name="text">
+    <string>Load Current Image(s)</string>
+   </property>
+  </action>
+  <action name="actionSet_Region_of_Interest_ROI">
+   <property name="text">
+    <string>Set Region of Interest</string>
+   </property>
+  </action>
+  <action name="actionSet_DIC_Parameters">
+   <property name="text">
+    <string>Set DIC Parameters</string>
+   </property>
+  </action>
+  <action name="actionPerform_DIC_Analysis">
+   <property name="text">
+    <string>Perform DIC Analysis</string>
+   </property>
+  </action>
+  <action name="actionShow_Graphs">
+   <property name="text">
+    <string>Show Graphs</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
