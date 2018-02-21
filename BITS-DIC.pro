@@ -26,3 +26,6 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 include(src/headers/headers.pri)
 include(src/sources/sources.pri)
 include(src/forms/forms.pri)
+
+INCLUDEPATH += /usr/local/include/opencv
+LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui
