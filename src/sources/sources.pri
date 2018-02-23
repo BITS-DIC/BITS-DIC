@@ -1,5 +1,4 @@
 SOURCES += \
-	src/sources/main.cpp \
-	src/sources/mainwindow.cpp \
-	src/sources/dic.cpp
-
+    src/sources/main.cpp \
+    src/sources/mainwindow.cpp \
+    src/sources/dic.cpp

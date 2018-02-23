@@ -2,48 +2,49 @@
 
 Dic::Dic()
 {
-	this->nCurrImages = 0;
+    this->currentImagesCount = 0;
 }
 
-void Dic::setrefimg(const cv::Mat matrix)
+void Dic::setReferenceImage(const cv::Mat matrix)
 {
-	this->refImage = matrix;
+    this->referenceImage = matrix;
 }
 
-void Dic::setroi(cv::Mat matrix)
+void Dic::setROI(cv::Mat matrix)
 {
 	this->roi = matrix;
 }
 
-void Dic::setcurrimg(int n, cv::Mat *list)
+
+void Dic::setCurrentImages(int n, cv::Mat *list)
 {
-	this->nCurrImages = n;
-	this->currImages = list;
+    this->currentImagesCount = n;
+    this->currentImages = list;
 }
 
-cv::Mat Dic::getrefimg()
+cv::Mat Dic::getReferenceImage()
 {
-	return this->refImage;
+    return this->referenceImage;
 }
 
-int Dic::getcurrimgcount()
+int Dic::getCurrentImagesCount()
 {
-	return this->nCurrImages;
+    return this->currentImagesCount;
 }
 
-cv::Mat Dic::getcurrimg_i(int i)
+cv::Mat Dic::getCurrentImage(int i)
 {
-	return this->currImages[i];
+    return this->currentImages[i];
 }
 
 Dic::~Dic()
 {
-	refImage.release();
-	if (currImages != NULL) {
-		for (int i = 0; i < this->nCurrImages; i++) {
-			currImages[i].release();
+    referenceImage.release();
+    if (currentImages != NULL) {
+        for (int i = 0; i < this->currentImagesCount; i++) {
+            currentImages[i].release();
 		}
-		currImages = NULL;
+        currentImages = NULL;
 	}
 }
 
