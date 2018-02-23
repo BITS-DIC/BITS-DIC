@@ -26,6 +26,8 @@ class MainWindow : public QMainWindow
 
 		void on_nextImage_clicked();
 
+		void on_actionSet_Region_of_Interest_ROI_triggered();
+
 private:
 		Ui::MainWindow *ui;
 		Dic *dic;

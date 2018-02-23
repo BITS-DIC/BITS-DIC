@@ -8,15 +8,16 @@ class Dic
 	public:
 		Dic();
 		~Dic();
-		enum State {init=0, cur_img_loaded=2, ref_img_loaded=1};
 		void setrefimg(cv::Mat);
+		void setroi(cv::Mat);
 		void setcurrimg(int /* Number of images */, cv::Mat * /* Pointer to array of images */);
 		int getcurrimgcount();
 		cv::Mat getcurrimg_i(int);
+		cv::Mat getrefimg();
 	private:
 		cv::Mat refImage;
 		cv::Mat *currImages;
-		Dic::State state;
+		cv::Mat roi;	/* Region of Interest */
 		int nCurrImages;    /* Number of current images */
 };
 

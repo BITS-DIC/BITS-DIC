@@ -2,21 +2,28 @@
 
 Dic::Dic()
 {
-	this->state = init;
 	this->nCurrImages = 0;
 }
 
 void Dic::setrefimg(const cv::Mat matrix)
 {
 	this->refImage = matrix;
-	this->state = ref_img_loaded;
+}
+
+void Dic::setroi(cv::Mat matrix)
+{
+	this->roi = matrix;
 }
 
 void Dic::setcurrimg(int n, cv::Mat *list)
 {
 	this->nCurrImages = n;
 	this->currImages = list;
-	this->state = cur_img_loaded;
+}
+
+cv::Mat Dic::getrefimg()
+{
+	return this->refImage;
 }
 
 int Dic::getcurrimgcount()

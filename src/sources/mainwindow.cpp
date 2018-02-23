@@ -137,3 +137,30 @@ void MainWindow::on_nextImage_clicked()
 {
 	setCurrentImageIndex(currImgIndex + 1);
 }
+
+void MainWindow::on_actionSet_Region_of_Interest_ROI_triggered()
+{
+	int thickness;	/* thickness of border */
+	cv::Mat refimg;
+	cv::Mat roi;
+	int i;	/* index */
+	int j;	/* index */
+
+	refimg = dic->getrefimg();
+	roi = cv::Mat::zeros(refimg.rows, refimg.cols, CV_8UC1);
+	thickness = std::min(refimg.rows, refimg.cols) / 10;	/* 10% of minimum dimension */
+	for (i = thickness; i <= refimg.rows - thickness ; i++) {
+		for (j = thickness; j < refimg.cols - thickness; j++) {
+			roi.at<uchar>(i, j) = 255;
+		}
+	}
+
+	dic->setroi(roi);
+	ui->roiChk->setChecked(true);
+	ui->roiChk->setText(tr("Default\n ROI set"));
+
+	// Show preview of ROI (to be removed later)
+	cv::namedWindow( "Display window", cv::WINDOW_GUI_NORMAL );	/* Create a window for display. */
+	cv::imshow( "Display window", roi );	/* Show our image inside it. */
+	cv::waitKey(0);
+}
