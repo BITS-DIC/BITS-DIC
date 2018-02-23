@@ -90,6 +90,8 @@ void MainWindow::on_actionLoad_Reference_Image_triggered() {
 		dic->setrefimg(refImage);
 		QImage convertedImage = matToQImage(refImage);
 		loadImage(&convertedImage, ui->refImage, 512);
+		ui->refImgChk->setChecked(true);
+		ui->refImgChk->setText(tr("Reference \n Image Loaded"));
 	}
 }
 
@@ -112,16 +114,16 @@ void MainWindow::on_actionLoad_Current_Image_s_triggered() {
 	setCurrentImageIndex(0);
 
 	QString status;
-	switch (files.length()) {
-		case 1: {
-			status = tr("Selected file ") + files.at(0);
-		} break;
-
-		default: {
-			status = tr("Selected ") + tr(std::to_string(files.length()).c_str()) + tr(" Files : ")
-					+ files.first() + " ... " + files.last();
-		} break;
+	if (files.length() == 1) {
+		status = tr("Selected file ") + files.at(0);
+		ui->currImgChk->setText("Loaded 1 \ncurrent image");
+	} else {
+		status = tr("Selected ") + tr(std::to_string(files.length()).c_str()) + tr(" Files : ")
+				+ files.first() + " ... " + files.last();
+		ui->currImgChk->setText(tr("Loaded ") + tr(std::to_string(files.length()).c_str()) + tr(" \ncurrent images"));
 	}
+	ui->currImgChk->setChecked(true);
+
 	statusBar()->showMessage(status, 2000);
 }
 
