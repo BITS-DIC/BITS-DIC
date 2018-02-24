@@ -164,7 +164,7 @@ void MainWindow::on_actionSet_Region_of_Interest_ROI_triggered()
     ui->roiChk->setText(tr("Default\n ROI set"));
 
     // Show preview of ROI (to be removed later)
-    cv::namedWindow("ROI preview", cv::WINDOW_GUI_NORMAL);	/* Create a window for display. */
+    cv::namedWindow("ROI preview", cv::WINDOW_NORMAL);	/* Create a window for display. */
     cv::imshow("ROI preview", roi);	/* Show our image inside it. */
     cv::waitKey(0);
 }
