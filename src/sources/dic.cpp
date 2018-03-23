@@ -37,45 +37,45 @@ void Dic::computeBcoef() {
 	std::vector<float> ker_x;
 	std::vector<std::complex<float> > ker_x_fft; /* stores result of fourier on ker_x */
 	std::vector<std::complex<float> > row_fft; /* stores resulf of fourier on a row */
-	cv::Mat bcoeff_t;	/* transpose of b coeff matrix */
-	int bt_cols;	/* number of columns of b coeff transpose matrix */
+    qDebug() << "Starting";
+    cv::Mat bcoeff_t;	/* transpose of b coeff matrix */
+    int bt_cols;	/* number of columns of b coeff transpose matrix*/
 	int bt_rows;
 
 	ri_cols = referenceImage.cols;
 	ri_rows = referenceImage.rows;
-	b_rows = ri_rows + 10;	/* padding is 5 pixel on each side */
+    b_rows = ri_rows + 10;	/* padding is 5 pixel on each side */
 	b_cols = ri_cols + 10;
 	bcoeff = cv::Mat::zeros(b_rows, b_cols, CV_32FC1);
-	qDebug("actual cols = %d \t rows = %d\n", bcoeff.cols, bcoeff.rows);
 	qDebug("%d %d %d %d\n", ri_cols, ri_rows,b_rows, b_cols);
-	/* corners */
-	for (i = 0; i < 5; i++) {
-		for (j = 0; j < 5; j++) {
-			bcoeff.at<float>(i, j) = (float) referenceImage.at<uchar>(0, 0);
-			bcoeff.at<float>(i, b_cols - 1 - j) = (float) referenceImage.at<uchar>(0, ri_cols - 1);
-			bcoeff.at<float>(j, b_rows - 1 - i) = (float) referenceImage.at<uchar>(0, ri_rows - 1);
-			bcoeff.at<float>(b_cols - 1 - j, b_rows - 1 - i) = (float) referenceImage.at<uchar>(ri_cols - 1, ri_rows - 1);
-		}
+    /*corners*/
+    for (i = 0; i < 5; i++) {
+	for (j = 0; j < 5; j++) {
+	    bcoeff.at<float>(i, j) = (float) referenceImage.at<uchar>(0, 0);
+	    bcoeff.at<float>(i, b_cols - 1 - j) = (float) referenceImage.at<uchar>(0, ri_cols - 1);
+	    bcoeff.at<float>(b_rows - 1 - i, j) = (float) referenceImage.at<uchar>(ri_rows - 1, 0);
+	    bcoeff.at<float>(b_rows - 1 - i, b_rows - 1 - j) = (float) referenceImage.at<uchar>(ri_rows - 1, ri_cols - 1);
 	}
+    }
 
-	/* sides */
-	for (k = 0; k < 5; k++) {
-		/* horizontal sides */
-		for (j = 5; j < b_cols - 5; j++) {
-			bcoeff.at<float>(j, k) = (float) referenceImage.at<uchar>(j - 5, 0);
-			bcoeff.at<float>(j, b_rows - 1 - k) = (float) referenceImage.at<uchar>(j - 5, ri_rows - 1);
+    /*sides*/
+    for (k = 0; k < 5; k++) {
+	/* horizontal sides*/
+	for (j = 5; j < b_cols - 5; j++) {
+	    bcoeff.at<float>(k, j) = (float) referenceImage.at<uchar>(0, j - 5);
+	    bcoeff.at<float>(b_rows - 1 - k, j) = (float) referenceImage.at<uchar>(ri_rows - 1, j - 5);
 		}
 
-		/* vertical sides */
+	/* vertical sides */
 		for (i = 5; i < b_rows - 5; i++) {
-			bcoeff.at<float>(k, i) = (float) referenceImage.at<uchar>(0, i - 5);
-			bcoeff.at<float>(b_cols - 1 - k, i) = (float) referenceImage.at<uchar>(ri_cols - 1, i - 5);
+	    bcoeff.at<float>(i, k) = (float) referenceImage.at<uchar>(i - 5, 0);
+	    bcoeff.at<float>(i, b_cols - 1 - k) = (float) referenceImage.at<uchar>(i - 5, ri_cols - 1);
 		}
-	}
+    }
 
 	for (i = 5; i < b_rows - 5; i++) {
 		for (j = 5; j < b_cols; j++) {
-			bcoeff.at<float>(j, i) = (float) referenceImage.at<uchar>(j - 5, i - 5);
+	    bcoeff.at<float>(i, j) = (float) referenceImage.at<uchar>(i - 5, j - 5);
 		}
 	}
 
@@ -87,6 +87,7 @@ void Dic::computeBcoef() {
 	}
 	ker_x.push_back(1.0f / 120.0f);
 	ker_x.push_back(13.0f / 60.0f);
+
 	cv::dft(ker_x, ker_x_fft, cv::DFT_ROWS|cv::DFT_COMPLEX_OUTPUT);
 	for (i = 0; i < b_rows; i++) {
 		cv::dft(bcoeff.row(i), row_fft, cv::DFT_ROWS|cv::DFT_COMPLEX_OUTPUT);
@@ -120,9 +121,7 @@ void Dic::computeBcoef() {
 		cv::dft(row_fft, bcoeff_t.row(i), cv::DFT_INVERSE|cv::DFT_ROWS|cv::DFT_REAL_OUTPUT);
 	}
 	cv::transpose(bcoeff_t, bcoeff);
-
 	/*======== Done B coefficients =======================================*/
-	/*======== Gradient calculation ======================================*/
 	refImgGradX = cv::Mat::zeros(ri_rows, ri_cols, referenceImage.type());
 	refImgGradY = cv::Mat::zeros(ri_rows, ri_cols, referenceImage.type());
 	for (i = 2; i < b_cols - 8; i++) {
@@ -164,27 +163,62 @@ void Dic::computeBcoef() {
 			float b34 = bcoeff.at<float>(j+3,i+5);
 			float b35 = bcoeff.at<float>(j+4,i+5);
 
-			refImgGradX.at<uchar>(i - 2, j - 2) = (uchar) (0.003472222222222222*b18-0.009027777777777778*b1-0.003472222222222222*b10-0.0003472222222222222*b0+0.09027777777777778*b19-0.02291666666666667*b2+0.2291666666666667*b20+0.09027777777777778*b21+0.003472222222222222*b22+0.0003472222222222222*b24+0.009027777777777778*b25+0.02291666666666667*b26+0.009027777777777778*b27+0.0003472222222222222*b28-0.009027777777777778*b3-0.0003472222222222222*b4-0.003472222222222222*b6-0.09027777777777778*b7-0.2291666666666667*b8-0.09027777777777778*b9);
-			refImgGradY.at<uchar>(i - 2, j - 2) =(uchar) (0.009027777777777778*b10-0.003472222222222222*b1-0.0003472222222222222*b0-0.02291666666666667*b12-0.2291666666666667*b13+0.2291666666666667*b15+0.02291666666666667*b16-0.009027777777777778*b18-0.09027777777777778*b19+0.09027777777777778*b21+0.009027777777777778*b22-0.0003472222222222222*b24-0.003472222222222222*b25+0.003472222222222222*b27+0.0003472222222222222*b28+0.003472222222222222*b3+0.0003472222222222222*b4-0.009027777777777778*b6-0.09027777777777778*b7+0.09027777777777778*b9);
+			refImgGradX.at<uchar>(j - 2, i - 2) = (uchar) (0.003472222222222222*b18-0.009027777777777778*b1-0.003472222222222222*b10-0.0003472222222222222*b0+0.09027777777777778*b19-0.02291666666666667*b2+0.2291666666666667*b20+0.09027777777777778*b21+0.003472222222222222*b22+0.0003472222222222222*b24+0.009027777777777778*b25+0.02291666666666667*b26+0.009027777777777778*b27+0.0003472222222222222*b28-0.009027777777777778*b3-0.0003472222222222222*b4-0.003472222222222222*b6-0.09027777777777778*b7-0.2291666666666667*b8-0.09027777777777778*b9);
+			refImgGradY.at<uchar>(j - 2, i - 2) =(uchar) (0.009027777777777778*b10-0.003472222222222222*b1-0.0003472222222222222*b0-0.02291666666666667*b12-0.2291666666666667*b13+0.2291666666666667*b15+0.02291666666666667*b16-0.009027777777777778*b18-0.09027777777777778*b19+0.09027777777777778*b21+0.009027777777777778*b22-0.0003472222222222222*b24-0.003472222222222222*b25+0.003472222222222222*b27+0.0003472222222222222*b28+0.003472222222222222*b3+0.0003472222222222222*b4-0.009027777777777778*b6-0.09027777777777778*b7+0.09027777777777778*b9);
 		}
 	}
-	/*QFile dump("/tmp/dicdump.txt");
-	if (!dump.open(QIODevice::WriteOnly | QIODevice::Text)) {
-		qDebug("returning");
-		return;
-	}*/
 
-/*	QTextStream out(&dump);
-	int count = 0;
+	QFile dumpbcoeff("/tmp/dicdump-bcoeff.txt");
+	if (!dumpbcoeff.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		qDebug("bcoeff returning");
+		return;
+	}
+
+	QTextStream outbCoeff(&dumpbcoeff);
 	for (i = 0; i < b_rows; i++) {
 		for (j = 0; j < b_cols; j++) {
-			out << bcoeff.at<float>(j, i) << "\t";
-			if (bcoeff.at<float>(j, i) != 0) count++;
+			outbCoeff << bcoeff.at<float>(i, j) << "\t";
 		}
-		out << "\n";
+		outbCoeff << "\n";
 	}
-	dump.close();
-	qDebug("rows %d\ncols %d \n%d done!", ri_rows, ri_cols, count);*/
+	dumpbcoeff.close();
+
+	QFile dumpGradX("/tmp/dicdump-gradX");
+	if (!dumpGradX.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		qDebug("gradx returning");
+		return;
+	}
+
+	QTextStream outGradX(&dumpGradX);
+	for (i = 0; i < ri_rows; i++) {
+		for (j = 0; j < ri_cols; j++) {
+			outGradX << refImgGradX.at<float>(i, j) << "\t";
+		}
+		outGradX << "\n";
+	}
+	dumpGradX.close();
+
+
+	QFile dumpGradY("/tmp/dicdump-gradY");
+	if (!dumpGradY.open(QIODevice::WriteOnly | QIODevice::Text)) {
+		qDebug("grady returning");
+		return;
+	}
+
+	QTextStream outGradY(&dumpGradY);
+	for (i = 0; i < ri_rows; i++) {
+		for (j = 0; j < ri_cols; j++) {
+			outGradY << refImgGradY.at<float>(i, j) << "\t";
+		}
+		outGradY << "\n";
+	}
+	dumpGradY.close();
+
+	cv::namedWindow("gradientX", cv::WINDOW_NORMAL);	/* Create a window for display. */
+	cv::imshow("gradientX", refImgGradX);	/* Show our image inside it. */
+	cv::namedWindow("gradientY", cv::WINDOW_NORMAL);	/* Create a window for display. */
+	cv::imshow("gradientY", refImgGradY);	/* Show our image inside it. */
+	cv::waitKey(0);
 }
 
 cv::Mat Dic::getReferenceImage()

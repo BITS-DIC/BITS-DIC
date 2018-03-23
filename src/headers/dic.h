@@ -14,6 +14,8 @@ class Dic
 		int getCurrentImagesCount();
 		cv::Mat getCurrentImage(int);
 		cv::Mat getReferenceImage();
+		cv::Mat getImgGradX();
+		cv::Mat getImgGradY();
 	private:
 		cv::Mat referenceImage;
 		cv::Mat *currentImages;
