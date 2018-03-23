@@ -7,6 +7,7 @@
 #include <QDesktopWidget>
 #include <opencv2/opencv.hpp>
 #include <cstdlib>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -17,6 +18,12 @@ MainWindow::MainWindow(QWidget *parent) :
     this->showMaximized();
     dic = new Dic();
     currImgIndex = -1;
+    /*std::vector<float> distanceF{0, 1, 2, 3, 4, 5, 6, 7}; // this is the type of the vector
+    std::vector<cv::Complex<float> > ff;
+    cv::dft(distanceF, ff, cv::DFT_ROWS|cv::DFT_COMPLEX_OUTPUT);
+    for (int i = 0; i < ff.size(); i++) {
+	    qDebug("%f + %f i\t", ff[i].re, ff[i].im);
+    }*/
 }
 
 MainWindow::~MainWindow()
