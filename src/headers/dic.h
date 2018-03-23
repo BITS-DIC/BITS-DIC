@@ -4,20 +4,25 @@
 
 class Dic
 {
-    public:
-        Dic();
-        ~Dic();
-        void setReferenceImage(cv::Mat);
-        void setROI(cv::Mat);
-        void setCurrentImages(int /* Number of images */, cv::Mat * /* Pointer to array of images */);
-        int getCurrentImagesCount();
-        cv::Mat getCurrentImage(int);
-        cv::Mat getReferenceImage();
-    private:
-        cv::Mat referenceImage;
-        cv::Mat *currentImages;
-        cv::Mat roi;	/* Region of Interest */
-        int currentImagesCount;    /* Number of current images */
+	public:
+		Dic();
+		~Dic();
+		void setReferenceImage(cv::Mat);
+		void setROI(cv::Mat);
+		void setCurrentImages(int /* Number of images */, cv::Mat * /* Pointer to array of images */);
+		void computeBcoef();
+		int getCurrentImagesCount();
+		cv::Mat getCurrentImage(int);
+		cv::Mat getReferenceImage();
+	private:
+		cv::Mat referenceImage;
+		cv::Mat *currentImages;
+		cv::Mat roi;	/* Region of Interest */
+		cv::Mat bcoeff;
+		int currentImagesCount;	/* Number of current images */
+		cv::Mat refImgGradX;	/* (d/dx) (f) */
+		cv::Mat refImgGradY;	/* (d/dy) (f) */
+
 };
 
 #endif // DIC_H
