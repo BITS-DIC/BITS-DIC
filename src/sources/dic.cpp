@@ -262,6 +262,7 @@ cv::Mat Dic::getCurrentImage(int i)
     return currentImages[i];
 }
 
+
 Dic::~Dic()
 {
     referenceImage.release();
