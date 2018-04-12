@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
     std::vector<cv::Complex<float> > ff;
     cv::dft(distanceF, ff, cv::DFT_ROWS|cv::DFT_COMPLEX_OUTPUT);
     for (int i = 0; i < ff.size(); i++) {
-	    qDebug("%f + %f i\t", ff[i].re, ff[i].im);
+        qDebug("%f + %f i\t", ff[i].re, ff[i].im);
     }*/
 }
 
@@ -174,4 +174,9 @@ void MainWindow::on_actionSet_Region_of_Interest_ROI_triggered()
     cv::namedWindow("ROI preview", cv::WINDOW_NORMAL);	/* Create a window for display. */
     cv::imshow("ROI preview", roi);	/* Show our image inside it. */
     cv::waitKey(0);
+}
+
+void MainWindow::on_actionPerform_DIC_Analysis_triggered()
+{
+    dic->performDicAnalysis();
 }
