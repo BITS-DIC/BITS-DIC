@@ -1,11 +1,12 @@
-#include "src/headers/mainwindow.h"
+#include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "setroi.h"
+#include "utils.h"
 #include <QFile>
 #include <QDir>
 #include <QStatusBar>
 #include <QFileDialog>
 #include <QDesktopWidget>
-#include <opencv2/opencv.hpp>
 #include <cstdlib>
 #include <QDebug>
 
@@ -17,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowTitle(WINDOW_TITLE);
     this->showMaximized();
     dic = new Dic();
+    setRoiDialog = new SetROI(this);
     currImgIndex = -1;
     /*std::vector<float> distanceF{0, 1, 2, 3, 4, 5, 6, 7}; // this is the type of the vector
     std::vector<cv::Complex<float> > ff;
@@ -30,57 +32,18 @@ MainWindow::~MainWindow()
 {
     delete ui;
     delete dic;
+    delete setRoiDialog;
 }
 
-/**
- * @brief Method to convert a cv::Mat object to QImage object.
- * @param cv::Mat object.
- * @return Non null QImage object.
- */
-QImage matToQImage(const cv::Mat& mat) {
-    if(mat.type() == CV_8UC1) {
-        // 8-bits unsigned, NO. OF CHANNELS=1
-        //Example would be grayscale images
-
-        // Set the color table (used to translate colour indexes to qRgb values)
-        QVector<QRgb> colorTable;
-        for (int i=0; i<256; i++) {
-            colorTable.push_back(qRgb(i,i,i));
-        }
-
-        // Copy input Mat
-        const uchar *qImageBuffer = (const uchar*) mat.data;
-        // Create QImage with same dimensions as input Mat
-        QImage qimg(qImageBuffer, mat.cols, mat.rows, mat.step, QImage::Format_Indexed8);
-        qimg.setColorTable(colorTable);
-        return qimg;
-    } else {
-        return QImage();
-    }
-}
 
 void MainWindow::setCurrentImageIndex(int i) {
     currImgIndex = i;
-    QImage qim = matToQImage(dic->getCurrentImage(i));
-    loadImage(&qim, ui->currImage, 512);
+    QImage qim = Utils::matToQImage(dic->getCurrentImage(i));
+    Utils::loadImage(qim, ui->currImage, 512);
     ui->currentImageIndex->setText(tr(std::to_string(i + 1).c_str()));
     ui->prevImage->setEnabled(i > 0);
     ui->nextImage->setEnabled(i < dic->getCurrentImagesCount() - 1);
     ui->currentImageIndex->setEnabled(true);
-}
-
-void MainWindow::loadImage(QImage *image, QLabel *frame, int maxDim = 512) {
-    //reducing image width and height
-    int width = image->width();
-    int height = image->height();
-    if (width > height && width > maxDim) {
-        height = (height * maxDim) / width;
-        width = maxDim;
-    } else if(height > width && height > maxDim) {
-        width = (width * maxDim) / height;
-        height = maxDim;
-    }
-    frame->setPixmap(QPixmap::fromImage(image->scaled(width, height, Qt::KeepAspectRatio)));
 }
 
 void MainWindow::on_actionLoad_Reference_Image_triggered() {
@@ -88,7 +51,7 @@ void MainWindow::on_actionLoad_Reference_Image_triggered() {
             tr("Select Reference Image File"),
             QDir::homePath(),
             "Images (*.png *.jpg *.jpeg *.tif *.tiff);;All Files (*)",
-            0,
+            nullptr,
             QFileDialog::DontUseNativeDialog
         );
     QString status = tr("");
@@ -98,8 +61,8 @@ void MainWindow::on_actionLoad_Reference_Image_triggered() {
         statusBar()->showMessage(status, 2000);
         cv::Mat refImage = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
         dic->setReferenceImage(refImage);
-        QImage convertedImage = matToQImage(refImage);
-        loadImage(&convertedImage, ui->refImage, 512);
+        QImage convertedImage = Utils::matToQImage(refImage);
+        Utils::loadImage(convertedImage, ui->refImage, 512);
         ui->refImgChk->setChecked(true);
         ui->refImgChk->setText(tr("Reference \n Image Loaded"));
     }
@@ -151,29 +114,32 @@ void MainWindow::on_nextImage_clicked()
 
 void MainWindow::on_actionSet_Region_of_Interest_ROI_triggered()
 {
-    int thickness;	/* thickness of border */
-    cv::Mat refImage;
-    cv::Mat roi;
-    int i;	/* index */
-    int j;	/* index */
+    qDebug() << "Loading SetROI";
+    setRoiDialog->open();
 
-    refImage = dic->getReferenceImage();
-    roi = cv::Mat::zeros(refImage.rows, refImage.cols, CV_8UC1);
-    thickness = std::min(refImage.rows, refImage.cols) / 10;	/* 10% of minimum dimension */
-    for (i = thickness; i <= refImage.rows - thickness ; i++) {
-        for (j = thickness; j < refImage.cols - thickness; j++) {
-            roi.at<uchar>(i, j) = 255;
-        }
-    }
+    qDebug() << "Setting up signal/slot connection for ROI";
+    connect(setRoiDialog, SIGNAL(onRoiSet(cv::Mat)), this, SLOT(onRoiSet(cv::Mat)), Qt::UniqueConnection);
+}
 
-    dic->setROI(roi);
+/**
+ * @brief MainWindow::onRoiSet When SetROI gives a signal that user has decided on ROI data.
+ * @param roiImage cv::Mat image data. //TODO make sure it is either 0/255 data.
+ */
+void MainWindow::onRoiSet(cv::Mat roiImage) {
+    dic->setROI(roiImage);
+
     ui->roiChk->setChecked(true);
-    ui->roiChk->setText(tr("Default\n ROI set"));
+    ui->roiChk->setText(tr("ROI set"));
 
     // Show preview of ROI (to be removed later)
-    cv::namedWindow("ROI preview", cv::WINDOW_NORMAL);	/* Create a window for display. */
-    cv::imshow("ROI preview", roi);	/* Show our image inside it. */
-    cv::waitKey(0);
+    //NOTE If this fails, high-gui may be not have been implemented in opencv build
+    //cv::namedWindow("ROI preview", cv::WINDOW_NORMAL);
+    //cv::imshow("ROI preview", roiImage);
+    //cv::waitKey(0);
+
+    //TODO what happens in case SetROI window gets closed. Maybe unique connection will prevent extra connects.
+    qDebug() << "Disconnecting signal/slot connection for ROI";
+    disconnect(setRoiDialog, SIGNAL(onRoiSet(cv::Mat)), this, SLOT(onRoiSet(cv::Mat)));
 }
 
 void MainWindow::on_actionPerform_DIC_Analysis_triggered()

@@ -1,4 +1,4 @@
-#include "src/headers/dic.h"
+#include "dic.h"
 #include <QFile>
 #include <QDebug>
 #include <vector>
@@ -266,10 +266,10 @@ cv::Mat Dic::getCurrentImage(int i)
 Dic::~Dic()
 {
     referenceImage.release();
-    if (currentImages != NULL) {
+    if (currentImages != nullptr) {
         for (int i = 0; i < currentImagesCount; i++) {
             currentImages[i].release();
         }
-        currentImages = NULL;
+        currentImages = nullptr;
     }
 }
