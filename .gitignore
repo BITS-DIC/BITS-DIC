@@ -39,3 +39,6 @@ CMakeLists.txt.user*
 
 # release directory
 release
+
+# opencv source
+opencv2
