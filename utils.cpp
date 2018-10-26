@@ -1,5 +1,7 @@
 #include "utils.h"
-
+#include <algorithm>
+#include <cstdio>
+#include <cmath>
 /**
  * @brief Method to convert a cv::Mat object to QImage object.
  * @param cv::Mat object.
@@ -45,4 +47,39 @@ void Utils::loadImage(const QImage& image, QLabel *frame, int maxDim) {
         height = maxDim;
     }
     frame->setPixmap(QPixmap::fromImage(image.scaled(width, height, Qt::KeepAspectRatio)));
+}
+
+double Utils::ncc(const std::vector<double> &f, const std::vector<double> &g)
+{
+    double fm = std::accumulate(f.begin(), f.end(), 0.0) / f.size();
+    double gm = std::accumulate(g.begin(), g.end(), 0.0) / g.size();
+    return ncc(f, g, fm, gm);
+}
+
+double Utils::ncc(const std::vector<double> &f,
+		  const std::vector<double> &g,
+		  double fm,
+		  double gm)
+{
+    // size of subset
+    unsigned long n;
+    // sum((f(i) - fm)(g(i) - gm))
+    double sum_cross_prod = 0.0;
+    // sum((f(i) - fm) ^ 2)
+    double sum_sq_f = 0.0;
+    // sum((g(i) - gm) ^ 2)
+    double sum_sq_g = 0.0;
+
+    n = f.size();
+    if (n != g.size()) {
+        qFatal("ncc: Received unequal sets. Sizes are %ld and %ld respectively", n, g.size());
+    }
+
+    for (unsigned long i = 0; i < n; i++) {
+        sum_cross_prod += (f[i] - fm) * (g[i] - gm);
+	sum_sq_f += (f[i] - fm) * (f[i] - fm);
+	sum_sq_g += (g[i] - gm) * (g[i] - gm);
+    }
+
+    return sum_cross_prod / (std::sqrt(sum_sq_f * sum_sq_g));
 }
