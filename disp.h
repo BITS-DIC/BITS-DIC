@@ -1,6 +1,6 @@
 #ifndef DISP_H
 #define DISP_H
-#include <algorithm>
+#include <vector>
 
 class Disp
 {

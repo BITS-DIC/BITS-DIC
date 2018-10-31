@@ -2,6 +2,7 @@
 #define DIC_H
 #include <opencv2/opencv.hpp>
 #include "disp.h"
+#include "params.h"
 
 class Dic
 {
@@ -18,6 +19,7 @@ class Dic
         cv::Mat getImgGradX();
         cv::Mat getImgGradY();
         void performDicAnalysis();
+        void setParams(Params);
     private:
         cv::Mat referenceImage;
         cv::Mat *currentImages;
@@ -44,6 +46,8 @@ class Dic
                 cv::Mat bcoeff, 
                 cv::Mat gradX, 
                 cv::Mat gradY);
+
+        Params params;
 };
 
 #endif // DIC_H

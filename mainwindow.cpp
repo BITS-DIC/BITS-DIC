@@ -9,6 +9,7 @@
 #include <QDesktopWidget>
 #include <cstdlib>
 #include <QDebug>
+#include <utility>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -145,4 +146,18 @@ void MainWindow::onRoiSet(cv::Mat roiImage) {
 void MainWindow::on_actionPerform_DIC_Analysis_triggered()
 {
     dic->performDicAnalysis();
+}
+
+void MainWindow::on_actionSet_DIC_Parameters_triggered()
+{
+    //TODO open gui and get parameters from user
+    Params fakeParams;
+    int seedX = dic->getReferenceImage().cols / 10;
+    int seedY = dic->getReferenceImage().rows / 10;
+    fakeParams.subsetRadius = 5;
+    fakeParams.subsetSpacing = 0;
+    fakeParams.seedPoint = std::make_pair(seedX, seedY);
+    dic->setParams(fakeParams);
+    ui->paramsChk->setText(tr("Fake Parameters set"));
+    ui->paramsChk->setChecked(true);
 }

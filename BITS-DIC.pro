@@ -34,11 +34,15 @@ HEADERS += \
     dic.h \
     setroi.h \
     mainwindow.h \
-    utils.h
+    disp.h \
+    utils.h \
+    params.h
 
 SOURCES += \
     utils.cpp \
     dic.cpp \
     setroi.cpp \
     mainwindow.cpp \
-    main.cpp
+    disp.cpp \
+    main.cpp \
+    params.cpp

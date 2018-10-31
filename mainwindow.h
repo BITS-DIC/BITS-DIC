@@ -17,7 +17,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     public:
-        explicit MainWindow(QWidget *parent = 0);
+        explicit MainWindow(QWidget *parent = nullptr);
         ~MainWindow();
 
     private slots:
@@ -28,6 +28,8 @@ class MainWindow : public QMainWindow
         void on_actionSet_Region_of_Interest_ROI_triggered();
         void on_actionPerform_DIC_Analysis_triggered();
         void onRoiSet(cv::Mat);
+
+        void on_actionSet_DIC_Parameters_triggered();
 
 private:
         Ui::MainWindow *ui;
