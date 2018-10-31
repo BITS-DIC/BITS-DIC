@@ -2,7 +2,6 @@
 #include <QFile>
 #include <QDebug>
 #include <vector>
-
 Dic::Dic()
 {
     currentImagesCount = 0;
@@ -262,6 +261,10 @@ cv::Mat Dic::getCurrentImage(int i)
     return currentImages[i];
 }
 
+void Dic::setParams(Params params)
+{
+    this->params = params;
+}
 
 Dic::~Dic()
 {
