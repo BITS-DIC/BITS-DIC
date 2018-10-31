@@ -1,6 +1,7 @@
 #include "utils.h"
 #include <algorithm>
 #include <cstdio>
+#include <QErrorMessage>
 #include <cmath>
 /**
  * @brief Method to convert a cv::Mat object to QImage object.
@@ -51,6 +52,7 @@ void Utils::loadImage(const QImage& image, QLabel *frame, int maxDim) {
 
 double Utils::ncc(const std::vector<double> &f, const std::vector<double> &g)
 {
+    if (f.size() == 0 or g.size() == 0) return 0.0;
     double fm = std::accumulate(f.begin(), f.end(), 0.0) / f.size();
     double gm = std::accumulate(g.begin(), g.end(), 0.0) / g.size();
     return ncc(f, g, fm, gm);
@@ -71,8 +73,8 @@ double Utils::ncc(const std::vector<double> &f,
     double sum_sq_g = 0.0;
 
     n = f.size();
-    if (n != g.size()) {
-        qFatal("ncc: Received unequal sets. Sizes are %ld and %ld respectively", n, g.size());
+    if (n != g.size() or n == 0) {
+        return 0.0;
     }
 
     for (unsigned long i = 0; i < n; i++) {

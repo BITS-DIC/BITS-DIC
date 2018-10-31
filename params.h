@@ -8,7 +8,7 @@
 class Params
 {
         public:
-                int subsetRadius;
+                int subsetSize;
                 int subsetSpacing;
                 std::pair<int, int> seedPoint;
 };
