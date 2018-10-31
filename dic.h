@@ -1,6 +1,7 @@
 #ifndef DIC_H
 #define DIC_H
 #include <opencv2/opencv.hpp>
+#include <vector>
 #include "disp.h"
 #include "params.h"
 
@@ -48,6 +49,13 @@ class Dic
                 cv::Mat gradY);
 
         Params params;
+	// temporary, we will replace this by deformation vector
+	std::vector<std::pair<int, int>> initMatches;
+	// find subset in each current image, similar to seed subset
+	void matchSeed(int currentIndex);
+    // serialize pixel intensities of a subset into a vector
+    std::vector<double> serializeSubset(const cv::Mat &image,
+                                        std::pair<int, int> center);
 };
 
 #endif // DIC_H

@@ -152,12 +152,13 @@ void MainWindow::on_actionSet_DIC_Parameters_triggered()
 {
     //TODO open gui and get parameters from user
     Params fakeParams;
-    int seedX = dic->getReferenceImage().cols / 10;
-    int seedY = dic->getReferenceImage().rows / 10;
-    fakeParams.subsetRadius = 5;
+    int seedX = dic->getReferenceImage().cols / 2;
+    int seedY = dic->getReferenceImage().rows / 8;
+    fakeParams.subsetSize = 10;
     fakeParams.subsetSpacing = 0;
     fakeParams.seedPoint = std::make_pair(seedX, seedY);
     dic->setParams(fakeParams);
+    qDebug( "seed location is {%d, %d}", seedX, seedY);
     ui->paramsChk->setText(tr("Fake Parameters set"));
     ui->paramsChk->setChecked(true);
 }

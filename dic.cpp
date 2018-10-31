@@ -1,4 +1,5 @@
 #include "dic.h"
+#include "utils.h"
 #include <QFile>
 #include <QDebug>
 #include <vector>
@@ -20,6 +21,9 @@ void Dic::setROI(cv::Mat matrix)
 void Dic::performDicAnalysis()
 {
     preCompute();
+    for (int i = 0; i < currentImagesCount; i++) {
+        matchSeed(i);
+    }
 }
 
 void Dic::preCompute()
@@ -264,6 +268,57 @@ cv::Mat Dic::getCurrentImage(int i)
 void Dic::setParams(Params params)
 {
     this->params = params;
+}
+
+void Dic::matchSeed(int currentIndex)
+{
+    double maxCorrelation = 0.0, correlation;
+    std::pair<int, int> match, candidate;
+    std::vector<double> serialSeed = serializeSubset(referenceImage, params.seedPoint);
+    for (int i = 0; i < currentImages[currentIndex].rows; i++) {
+        for (int j = 0; j < currentImages[currentIndex].cols; j++) {
+            candidate = std::make_pair(i, j);
+            correlation = Utils::ncc(serialSeed,
+                                     serializeSubset(currentImages[currentIndex], candidate));
+            if (correlation > maxCorrelation) {
+                match = candidate;
+                maxCorrelation = correlation;
+            }
+        }
+    }
+    qDebug("for %d th current image, found match at {%d, %d} with correlation = %lf",
+           currentIndex, match.first, match.second, maxCorrelation);
+}
+
+std::vector<double> Dic::serializeSubset(const cv::Mat &image,
+                                    std::pair<int, int> center)
+{
+    unsigned long xMin = 0;
+    unsigned long xMax = static_cast<unsigned long>(image.cols) - 1;
+    unsigned long yMin = 0;
+    unsigned long yMax = static_cast<unsigned long>(image.rows) - 1;
+    unsigned long side = static_cast<unsigned long>(params.subsetSize);
+    unsigned long xStart = static_cast<unsigned long>(center.first) - side / 2;
+    unsigned long yStart = static_cast<unsigned long>(center.second) - side / 2;
+    unsigned long x;
+    unsigned long y;
+    std::vector<double> res(static_cast<size_t>(side * side), 0.0);
+
+
+    if (xStart < xMin or yStart < yMin or
+            xStart + side - 1 > xMax or yStart + side - 1 > yMax) {
+        std::vector<double> empty;
+        return empty;
+    }
+    x = xStart;
+    for (size_t i = 0; i < side; i++, x++) {
+        y = yStart;
+        for (size_t j = 0; j < side; j++, y++) {
+            res[i * side + j] = static_cast<double>(image.at<uchar>(static_cast<int>(x),
+                                                                         static_cast<int>(y)));
+        }
+    }
+    return res;
 }
 
 Dic::~Dic()
