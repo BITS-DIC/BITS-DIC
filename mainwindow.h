@@ -6,6 +6,7 @@
 #include <QtWidgets/QLabel>
 #include "dic.h"
 #include "setroi.h"
+#include "displwindow.h"
 #include <opencv2/opencv.hpp>
 
 namespace Ui {
@@ -30,11 +31,13 @@ class MainWindow : public QMainWindow
         void onRoiSet(cv::Mat);
 
         void on_actionSet_DIC_Parameters_triggered();
+        void on_actionShow_Displacements_triggered();
 
 private:
         Ui::MainWindow *ui;
         Dic *dic;
         SetROI *setRoiDialog;
+        DisplWindow *displWindow;
         int currImgIndex;
         void setCurrentImageIndex(int);
 };

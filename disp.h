@@ -5,15 +5,19 @@
 class Disp
 {
 public:
-    Disp(unsigned int rows = 1, unsigned int cols = 1);
+    Disp(int rows = 1, int cols = 1);
     ~Disp();
-    unsigned int getRows();
-    unsigned int getCols();
-    void setValue(double val, unsigned int row, unsigned int col);
-    double getValue(unsigned int row, unsigned int col);
+    int getRows();
+    int getCols();
+    void setValue(double val, int row, int col);
+    double getValue(int row, int col);
+    double getMinValue();
+    double getMaxValue();
 private:
-    unsigned int rows;
-    unsigned int cols;
+    double minValue;
+    double maxValue;
+    int rows;
+    int cols;
     std::vector<std::vector<double>> plot;
 };
 

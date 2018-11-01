@@ -826,7 +826,7 @@ Images loaded</string>
     <property name="title">
      <string>Output</string>
     </property>
-    <addaction name="actionShow_Graphs"/>
+    <addaction name="actionShow_Displacements"/>
    </widget>
    <addaction name="menuInput"/>
    <addaction name="menuParameters"/>
@@ -859,9 +859,12 @@ Images loaded</string>
     <string>Perform DIC Analysis</string>
    </property>
   </action>
-  <action name="actionShow_Graphs">
+  <action name="actionShow_Displacements">
    <property name="text">
-    <string>Show Graphs</string>
+    <string>Show Displacements</string>
+   </property>
+   <property name="toolTip">
+    <string>Show Displacements</string>
    </property>
   </action>
  </widget>

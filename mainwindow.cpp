@@ -20,6 +20,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->showMaximized();
     dic = new Dic();
     setRoiDialog = new SetROI(this);
+    displWindow = new DisplWindow(this, dic);
     currImgIndex = -1;
     /*std::vector<float> distanceF{0, 1, 2, 3, 4, 5, 6, 7}; // this is the type of the vector
     std::vector<cv::Complex<float> > ff;
@@ -41,7 +42,7 @@ void MainWindow::setCurrentImageIndex(int i) {
     currImgIndex = i;
     QImage qim = Utils::matToQImage(dic->getCurrentImage(i));
     Utils::loadImage(qim, ui->currImage, 512);
-    ui->currentImageIndex->setText(tr(std::to_string(i + 1).c_str()));
+    ui->currentImageIndex->setNum(i + 1);
     ui->prevImage->setEnabled(i > 0);
     ui->nextImage->setEnabled(i < dic->getCurrentImagesCount() - 1);
     ui->currentImageIndex->setEnabled(true);
@@ -161,4 +162,10 @@ void MainWindow::on_actionSet_DIC_Parameters_triggered()
     qDebug( "seed location is {%d, %d}", seedX, seedY);
     ui->paramsChk->setText(tr("Fake Parameters set"));
     ui->paramsChk->setChecked(true);
+}
+
+void MainWindow::on_actionShow_Displacements_triggered()
+{
+    //TODO Preconditions is completion of DIC Analysis.
+    displWindow->show();
 }
