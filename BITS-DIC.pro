@@ -28,7 +28,8 @@ LIBS += -L/usr/local/lib -lopencv_core -lopencv_imgcodecs -lopencv_highgui
 
 FORMS += \
     setroi.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    displwindow.ui
 
 HEADERS += \
     dic.h \
@@ -36,7 +37,9 @@ HEADERS += \
     mainwindow.h \
     disp.h \
     utils.h \
-    params.h
+    params.h \
+    displwindow.h \
+    colormap.h
 
 SOURCES += \
     utils.cpp \
@@ -45,4 +48,9 @@ SOURCES += \
     mainwindow.cpp \
     disp.cpp \
     main.cpp \
-    params.cpp
+    params.cpp \
+    displwindow.cpp \
+    colormap.cpp
+
+RESOURCES += \
+    resources.qrc
