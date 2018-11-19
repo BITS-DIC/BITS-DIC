@@ -2,8 +2,8 @@
 #define DIC_H
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include "disp.h"
 #include "params.h"
+#include "array2d.h"
 
 class Dic
 {
@@ -34,9 +34,9 @@ class Dic
         cv::Mat *currImgsGradY;
         void preCompute();
 
-        Disp plot_u;
-        Disp plot_v;
-        Disp plot_corrcoef;
+        Array2D<double> * plot_u;
+        Array2D<double> * plot_v;
+        Array2D<double> * plot_corrcoef;
 
         /* Given image `img`, calculates and saves its- 
          * b coefficient matrix in `bcoeff`

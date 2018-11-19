@@ -35,22 +35,22 @@ HEADERS += \
     dic.h \
     setroi.h \
     mainwindow.h \
-    disp.h \
     utils.h \
     params.h \
     displwindow.h \
-    colormap.h
+    colormap.h \
+    array2d.h
 
 SOURCES += \
     utils.cpp \
     dic.cpp \
     setroi.cpp \
     mainwindow.cpp \
-    disp.cpp \
     main.cpp \
     params.cpp \
     displwindow.cpp \
-    colormap.cpp
+    colormap.cpp \
+    array2d.cpp
 
 RESOURCES += \
     resources.qrc
