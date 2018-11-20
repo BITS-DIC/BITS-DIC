@@ -39,7 +39,8 @@ HEADERS += \
     params.h \
     displwindow.h \
     colormap.h \
-    array2d.h
+    array2d.h \
+    dicimage.h
 
 SOURCES += \
     utils.cpp \
@@ -50,7 +51,8 @@ SOURCES += \
     params.cpp \
     displwindow.cpp \
     colormap.cpp \
-    array2d.cpp
+    array2d.cpp \
+    dicimage.cpp
 
 RESOURCES += \
     resources.qrc

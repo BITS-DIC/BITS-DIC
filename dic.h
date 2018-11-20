@@ -4,57 +4,51 @@
 #include <vector>
 #include "params.h"
 #include "array2d.h"
+#include "dicimage.h"
 
 class Dic
 {
     public:
         Dic();
         ~Dic();
-        void setReferenceImage(cv::Mat);
+        void setReferenceImage(DicImage);
         void setROI(cv::Mat);
-        void setCurrentImages(int /* Number of images */,
-                cv::Mat * /* Pointer to array of images */);
+        void setCurrentImages(int, std::vector<DicImage>);
         int getCurrentImagesCount();
-        cv::Mat getCurrentImage(int);
-        cv::Mat getReferenceImage();
+        DicImage getCurrentImage(int);
+        DicImage getReferenceImage();
         cv::Mat getImgGradX();
         cv::Mat getImgGradY();
         void performDicAnalysis();
         void setParams(Params);
     private:
-        cv::Mat referenceImage;
-        cv::Mat *currentImages;
+        DicImage referenceImage;
+        std::vector<DicImage> currentImages;
         cv::Mat roi;	/* Region of Interest */
-        cv::Mat refImgBcoeff;
         cv::Mat refImgGradX;	/* (d/dx) (f) */
         cv::Mat refImgGradY;	/* (d/dy) (f) */
         int currentImagesCount;	/* Number of current images */
-        cv::Mat *currImgsBcoeff;
         cv::Mat *currImgsGradX;
         cv::Mat *currImgsGradY;
         void preCompute();
 
-        Array2D<double> * plot_u;
-        Array2D<double> * plot_v;
-        Array2D<double> * plot_corrcoef;
+        Array2D<double> plot_u;
+        Array2D<double> plot_v;
+        Array2D<double> plot_corrcoef;
 
         /* Given image `img`, calculates and saves its- 
-         * b coefficient matrix in `bcoeff`
          * D/Dx gradient in `gradX`
          * D/Dy gradient in `gradY`
          */
-        void computeBcoefGrad(cv::Mat img,
-                cv::Mat bcoeff, 
-                cv::Mat gradX, 
-                cv::Mat gradY);
+        void computeGrad(DicImage img, cv::Mat gradX, cv::Mat gradY);
 
         Params params;
-	// temporary, we will replace this by deformation vector
-	std::vector<std::pair<int, int>> initMatches;
-	// find subset in each current image, similar to seed subset
-	void matchSeed(int currentIndex);
-    // serialize pixel intensities of a subset into a vector
-    std::vector<double> serializeSubset(const cv::Mat &image,
+        // temporary, we will replace this by deformation vector
+        std::vector<std::pair<int, int>> initMatches;
+        // find subset in each current image, similar to seed subset
+        void matchSeed(int currentIndex);
+        // serialize pixel intensities of a subset into a vector
+        std::vector<double> serializeSubset(DicImage &image,
                                         std::pair<int, int> center);
 };
 
