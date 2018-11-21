@@ -15,7 +15,7 @@ DisplWindow::DisplWindow(QWidget *parent, Dic *dic) :
     //color the u/v displacements
 
     //work with fake data for now
-    Array2D<int> disp(250, 400, 0);
+    Array2D<int> disp(250, 400);
     int minVal = std::numeric_limits<int>::max();
     int maxVal = std::numeric_limits<int>::min();
 

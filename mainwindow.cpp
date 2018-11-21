@@ -40,7 +40,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::setCurrentImageIndex(int i) {
     currImgIndex = i;
-    QImage qim = Utils::matToQImage(dic->getCurrentImage(i));
+    QImage qim = Utils::dicImagetoQImage(dic->getCurrentImage(i));
     Utils::loadImage(qim, ui->currImage, 512);
     ui->currentImageIndex->setNum(i + 1);
     ui->prevImage->setEnabled(i > 0);
@@ -62,7 +62,7 @@ void MainWindow::on_actionLoad_Reference_Image_triggered() {
         status = tr("Selected ") + fileName;
         statusBar()->showMessage(status, 2000);
         cv::Mat refImage = cv::imread(fileName.toStdString(), cv::IMREAD_GRAYSCALE);
-        dic->setReferenceImage(refImage);
+        dic->setReferenceImage(DicImage(refImage));
         QImage convertedImage = Utils::matToQImage(refImage);
         Utils::loadImage(convertedImage, ui->refImage, 512);
         ui->refImgChk->setChecked(true);
@@ -76,16 +76,16 @@ void MainWindow::on_actionLoad_Current_Image_s_triggered() {
             tr("Select Current Image(s)"),
             QDir::homePath(),
             "Images (*.png *.jpg *.jpeg *.tif *.tiff);;All Files (*)",
-            0, QFileDialog::DontUseNativeDialog
+            nullptr, QFileDialog::DontUseNativeDialog
         );
     if (files.length() == 0) {
         statusBar()->showMessage(tr("No File Selected"), 2000);
         return;
     }
 
-    cv::Mat *imagesList = (cv::Mat *) calloc(files.length(), sizeof(cv::Mat));
+    std::vector<DicImage> imagesList(files.length());
     for (int i = 0; i < files.length(); i++) {
-        imagesList[i] = cv::imread(files[i].toStdString(), cv::IMREAD_GRAYSCALE);
+        imagesList[i] = DicImage(cv::imread(files[i].toStdString(), cv::IMREAD_GRAYSCALE));
     }
     dic->setCurrentImages(files.length(), imagesList);
     setCurrentImageIndex(0);
@@ -153,8 +153,8 @@ void MainWindow::on_actionSet_DIC_Parameters_triggered()
 {
     //TODO open gui and get parameters from user
     Params fakeParams;
-    int seedX = dic->getReferenceImage().cols / 2;
-    int seedY = dic->getReferenceImage().rows / 8;
+    int seedX = dic->getReferenceImage().getWidth() / 2;
+    int seedY = dic->getReferenceImage().getHeight() / 8;
     fakeParams.subsetSize = 10;
     fakeParams.subsetSpacing = 0;
     fakeParams.seedPoint = std::make_pair(seedX, seedY);

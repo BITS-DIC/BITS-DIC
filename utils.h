@@ -4,13 +4,15 @@
 #include <QImage>
 #include <QLabel>
 #include <vector>
+#include <dicimage.h>
 
 class Utils
 {
 public:
     Utils();
     ~Utils();
-    static const QImage matToQImage(const cv::Mat& mat);
+    static const QImage matToQImage(const cv::Mat&);
+    static QImage dicImagetoQImage(DicImage);
     static void loadImage(const QImage&, QLabel*, int = 512);
     static double ncc(const std::vector<double> &f,
 		      const std::vector<double> &g);
