@@ -8,13 +8,13 @@
 #include <stdexcept>
 
 DicImage::DicImage() {
-    this->image = cv::Mat::zeros(1,1, CV_32FC1);
+    this->image = cv::Mat::zeros(1,1, CV_64FC1);
 }
 
 DicImage::DicImage(cv::Mat input) {
     //Assumed that image is grayscale
     this->image = input;
-    //getBcoef();
+    getBcoef();
 }
 
 
@@ -47,24 +47,24 @@ cv::Mat DicImage::getBcoef() {
 void DicImage::formBcoef() {
     //bcoeff range from 0 to 1
     cv::Mat temp;
-    image.convertTo(temp, CV_32FC1, 1/255.0);
+    image.convertTo(temp, CV_64FC1, 1/255.0);
     cv::copyMakeBorder(temp, bcoef, border_bcoef, border_bcoef, border_bcoef, border_bcoef, cv::BORDER_REPLICATE);
 
     // Form kernel vector
-    std::vector<float> kernel_b;
-    std::vector<std::complex<float> > kernel_x; /* stores result of fourier on ker_x */
-    kernel_b.push_back(11.0f / 20.0f);
-    kernel_b.push_back(13.0f / 60.0f);
-    kernel_b.push_back(1.0f / 120.0f);
+    std::vector<double> kernel_b;
+    std::vector<std::complex<double> > kernel_x; /* stores result of fourier on ker_x */
+    kernel_b.push_back(11.0 / 20.0);
+    kernel_b.push_back(13.0 / 60.0);
+    kernel_b.push_back(1.0 / 120.0);
     for (int i = 3; i < bcoef.cols - 2; i++) {
-        kernel_b.push_back(0.0f);
+        kernel_b.push_back(0.0);
     }
-    kernel_b.push_back(1.0f / 120.0f);
-    kernel_b.push_back(13.0f / 60.0f);
+    kernel_b.push_back(1.0 / 120.0);
+    kernel_b.push_back(13.0 / 60.0);
     //FFT across kernel
     cv::dft(kernel_b, kernel_x, cv::DFT_ROWS | cv::DFT_COMPLEX_OUTPUT);
 
-    std::vector<std::complex<float> > row_fft;
+    std::vector<std::complex<double> > row_fft;
     for (int row = 0; row < bcoef.rows; row++) {
         cv::dft(bcoef.row(row), row_fft, cv::DFT_ROWS | cv::DFT_COMPLEX_OUTPUT);
         for (int col = 0; col < bcoef.cols; col++) {
@@ -79,14 +79,14 @@ void DicImage::formBcoef() {
 
     cv::Mat bcoef_t = bcoef.t();
 
-    kernel_b.push_back(11.0f / 20.0f);
-    kernel_b.push_back(13.0f / 60.0f);
-    kernel_b.push_back(1.0f / 120.0f);
+    kernel_b.push_back(11.0 / 20.0);
+    kernel_b.push_back(13.0 / 60.0);
+    kernel_b.push_back(1.0 / 120.0);
     for (int i = 3; i < bcoef_t.cols - 2; i++) {
-        kernel_b.push_back(0.0f);
+        kernel_b.push_back(0.0);
     }
-    kernel_b.push_back(1.0f / 120.0f);
-    kernel_b.push_back(13.0f / 60.0f);
+    kernel_b.push_back(1.0 / 120.0);
+    kernel_b.push_back(13.0 / 60.0);
     cv::dft(kernel_b, kernel_x, cv::DFT_ROWS | cv::DFT_COMPLEX_OUTPUT);
 
     for (int row = 0; row < bcoef_t.rows; row++) {
