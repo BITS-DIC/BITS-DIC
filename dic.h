@@ -12,41 +12,32 @@ class Dic
         Dic();
         ~Dic();
         void setReferenceImage(DicImage);
+        void setCurrentImages(std::size_t, std::vector<DicImage>);
         void setROI(cv::Mat);
-        void setCurrentImages(int, std::vector<DicImage>);
-        int getCurrentImagesCount();
-        DicImage getCurrentImage(int);
+        std::size_t getCurrentImagesCount();
+        DicImage getCurrentImage(std::size_t);
         DicImage getReferenceImage();
-        cv::Mat getImgGradX();
-        cv::Mat getImgGradY();
         void performDicAnalysis();
         void setParams(Params);
     private:
         DicImage referenceImage;
         std::vector<DicImage> currentImages;
         cv::Mat roi;	/* Region of Interest */
-        cv::Mat refImgGradX;	/* (d/dx) (f) */
-        cv::Mat refImgGradY;	/* (d/dy) (f) */
-        int currentImagesCount;	/* Number of current images */
-        cv::Mat *currImgsGradX;
-        cv::Mat *currImgsGradY;
-        void preCompute();
+        std::vector<double> refImgGradX;	/* (d/dx) (f) */
+        std::vector<double> refImgGradY;	/* (d/dy) (f) */
+        std::vector<double> QK_B_QKT;
+        std::size_t currentImagesCount;	/* Number of current images */
+        void preCompute(std::size_t currentImage);
 
         Array2D<double> plot_u;
         Array2D<double> plot_v;
         Array2D<double> plot_corrcoef;
 
-        /* Given image `img`, calculates and saves its- 
-         * D/Dx gradient in `gradX`
-         * D/Dy gradient in `gradY`
-         */
-        void computeGrad(DicImage img, cv::Mat gradX, cv::Mat gradY);
-
         Params params;
         // temporary, we will replace this by deformation vector
         std::vector<std::pair<int, int>> initMatches;
         // find subset in each current image, similar to seed subset
-        void matchSeed(int currentIndex);
+        void matchSeed(std::size_t currentIndex);
         // serialize pixel intensities of a subset into a vector
         std::vector<double> serializeSubset(DicImage &image,
                                         std::pair<int, int> center);

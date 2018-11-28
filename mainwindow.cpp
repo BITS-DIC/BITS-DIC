@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <QDebug>
 #include <utility>
+#include <QMessageBox>
+#include <QElapsedTimer>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -146,7 +148,15 @@ void MainWindow::onRoiSet(cv::Mat roiImage) {
 
 void MainWindow::on_actionPerform_DIC_Analysis_triggered()
 {
+    QElapsedTimer timer;
+    qint64 nanoSec;
+    timer.start();
     dic->performDicAnalysis();
+    nanoSec = timer.nsecsElapsed();
+    nanoSec /= 1000;
+    nanoSec /= 1000;
+
+    QMessageBox::information(this, "DIC", QString("Analysis over! %1").arg(nanoSec));
 }
 
 void MainWindow::on_actionSet_DIC_Parameters_triggered()
