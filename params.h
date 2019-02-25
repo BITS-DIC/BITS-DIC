@@ -5,12 +5,15 @@
 /**
  * Encapsulate all the parameters user sets.
  */
-class Params
-{
-        public:
-                int subsetSize;
-                int subsetSpacing;
-                std::pair<int, int> seedPoint;
+class Params {
+  public:
+    Params();
+    Params(const Params &old);
+    double cutoff_diffnorm;
+    double cutoff_iteration;
+    int subsetSize;
+    int subsetSpacing;
+    std::pair<int, int> seedPoint;
 };
 
 #endif // PARAMS_H
