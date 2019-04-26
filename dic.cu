@@ -1,6 +1,5 @@
 ﻿#include "dic.h"
 #include "dicimage.h"
-#include <QString>
 
 Dic::Dic() {}
 
@@ -683,7 +682,7 @@ bool Dic::iterativesearch(std::ofstream &of, std::size_t currImg, std::vector<do
         // If one of the diagonals is close to zero or negative, then the
         // hessian is not positive definite
         bool positivedef = true;
-        Utils::cholesky(hessian_gn_buffer, positivedef, 6);
+        dicutils::cholesky(hessian_gn_buffer, positivedef, 6);
 
         if (positivedef) {
             // Start iterations - For first iteration use defvector_init
@@ -875,10 +874,10 @@ bool Dic::newton(std::ofstream &of, std::size_t currImg, std::vector<double> &de
         // GG'x = b, where G is lower triangular
         // Gy = b -> G'x = y
         // Step 1: solve for y with forward substitution; y is stored in gradient_buffer
-        Utils::forwardsub(gradient_buffer, hessian_gn_buffer, 6);
+        dicutils::forwardsub(gradient_buffer, hessian_gn_buffer, 6);
 
         // Step 2: solve for x with back substitution
-        Utils::backwardsub(gradient_buffer, hessian_gn_buffer, 6);
+        dicutils::backwardsub(gradient_buffer, hessian_gn_buffer, 6);
 
         // Make gradient_buffer negative
         for (int i = 0; i < 6; i++) {
@@ -923,7 +922,7 @@ void Dic::matchSeed(std::size_t currentIndex) {
     for (int i = 0; i < cimgs[currentIndex].gs.height; i++) {
         for (int j = 0; j < cimgs[currentIndex].gs.width; j++) {
             candidate = std::make_pair(i, j);
-            correlation = Utils::ncc(
+            correlation = dicutils::ncc(
                 serialSeed, serializeSubset(cimgs[currentIndex], candidate));
             if (correlation > maxCorrelation) {
                 match = candidate;

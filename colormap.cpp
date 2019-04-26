@@ -2,6 +2,8 @@
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
+#include <cmath>
+
 
 /**
  * @brief Initialise the MATLAB jet palette.

@@ -5,7 +5,7 @@
 #include "struct_cirroi.h"
 #include "struct_info_cirroi.h"
 #include <vector>
-#include "utils.h"
+#include "dicutils.h"
 
 class class_roi {
   public:

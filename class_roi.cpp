@@ -339,7 +339,7 @@ void class_roi::get_cirroi(const int &x, const int &y, const int &num_region, co
 
             // Find boundary
             int direc = 7;
-            Utils::form_boundary(vec_boundary, vec_point_topleft, info_cirroi.mask, direc);
+            dicutils::form_boundary(vec_boundary, vec_point_topleft, info_cirroi.mask, direc);
 
             // Find closest point -> Find line equation -> Find
             // number of points to the left and right of the
@@ -366,8 +366,8 @@ void class_roi::get_cirroi(const int &x, const int &y, const int &num_region, co
 
                 // Get indices of points 1 behind and 1 ahead
                 int idx_space = 3;
-                int idx_plus = Utils::mod_pos(idx_min + idx_space, (int)vec_boundary.size());
-                int idx_minus = Utils::mod_pos(idx_min - idx_space, (int)vec_boundary.size());
+                int idx_plus = dicutils::mod_pos(idx_min + idx_space, (int)vec_boundary.size());
+                int idx_minus = dicutils::mod_pos(idx_min - idx_space, (int)vec_boundary.size());
 
                 // Initialize points to calculate derivatives with
                 double x_plus_f = 0;
@@ -379,13 +379,13 @@ void class_roi::get_cirroi(const int &x, const int &y, const int &num_region, co
                 // Set filt length
                 int length_filt = 2;
                 for (int i = -length_filt; i <= length_filt; i++) {
-                    x_plus_f += (double)vec_boundary[Utils::mod_pos(idx_plus + i, (int)vec_boundary.size())][0];
-                    x_min_f += (double)vec_boundary[Utils::mod_pos(idx_min + i, (int)vec_boundary.size())][0];
-                    x_minus_f += (double)vec_boundary[Utils::mod_pos(idx_minus + i, (int)vec_boundary.size())][0];
+                    x_plus_f += (double)vec_boundary[dicutils::mod_pos(idx_plus + i, (int)vec_boundary.size())][0];
+                    x_min_f += (double)vec_boundary[dicutils::mod_pos(idx_min + i, (int)vec_boundary.size())][0];
+                    x_minus_f += (double)vec_boundary[dicutils::mod_pos(idx_minus + i, (int)vec_boundary.size())][0];
 
-                    y_plus_f += (double)vec_boundary[Utils::mod_pos(idx_plus + i, (int)vec_boundary.size())][1];
-                    y_min_f += (double)vec_boundary[Utils::mod_pos(idx_min + i, (int)vec_boundary.size())][1];
-                    y_minus_f += (double)vec_boundary[Utils::mod_pos(idx_minus + i, (int)vec_boundary.size())][1];
+                    y_plus_f += (double)vec_boundary[dicutils::mod_pos(idx_plus + i, (int)vec_boundary.size())][1];
+                    y_min_f += (double)vec_boundary[dicutils::mod_pos(idx_min + i, (int)vec_boundary.size())][1];
+                    y_minus_f += (double)vec_boundary[dicutils::mod_pos(idx_minus + i, (int)vec_boundary.size())][1];
                 }
                 // Divide by length
                 x_plus_f /= 2 * length_filt + 1;
@@ -474,7 +474,7 @@ void class_roi::get_cirroi(const int &x, const int &y, const int &num_region, co
 
                 // Now determine which side p_subset lies and
                 // clear the other side
-                int sign_clear = -Utils::sign((p1[0] - p0[0]) * (p_subset[1] - p0[1]) - (p_subset[0] - p0[0]) * (p1[1] - p0[1]));
+                int sign_clear = -dicutils::sign((p1[0] - p0[0]) * (p_subset[1] - p0[1]) - (p_subset[0] - p0[0]) * (p1[1] - p0[1]));
 
                 // Make a copy of the mask - this is because truncation can potentially
                 // cause the mask to be empty. In this case simply leave the subset
@@ -490,7 +490,7 @@ void class_roi::get_cirroi(const int &x, const int &y, const int &num_region, co
                     for (int j = 0; j < info_cirroi.region.noderange.value[i]; j += 2) {
                         for (int k = info_cirroi.region.nodelist.value[i + j * info_cirroi.region.nodelist.height]; k <= info_cirroi.region.nodelist.value[i + (j + 1) * info_cirroi.region.nodelist.height]; k++) {
                             int y = k - (info_cirroi.y - info_cirroi.radius);
-                            if (Utils::sign((p1[0] - p0[0]) * ((double)y - p0[1]) - ((double)x - p0[0]) * (p1[1] - p0[1])) == sign_clear) {
+                            if (dicutils::sign((p1[0] - p0[0]) * ((double)y - p0[1]) - ((double)x - p0[0]) * (p1[1] - p0[1])) == sign_clear) {
                                 // Clear points on this side
                                 info_cirroi.mask_buffer.value[y + x * info_cirroi.mask_buffer.height] = false;
                             }
@@ -508,7 +508,7 @@ void class_roi::get_cirroi(const int &x, const int &y, const int &num_region, co
                 // Use a vec_struct_region instead of ncorr_struct_region because it is thread safe
                 std::vector<vec_struct_region> region_cirroi_buffer;
                 bool removed = false;
-                Utils::form_regions(region_cirroi_buffer, removed, info_cirroi.mask_buffer, 0, true);
+                dicutils::form_regions(region_cirroi_buffer, removed, info_cirroi.mask_buffer, 0, true);
 
                 // Its possible for region to be empty. Must check it
                 if (region_cirroi_buffer.size() > 0) {

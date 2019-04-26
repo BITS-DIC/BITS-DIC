@@ -9,7 +9,7 @@
 #include "params.h"
 #include <opencv2/core.hpp>
 #include <vector>
-#include "utils.h"
+#include "dicutils.h"
 #include <fstream>
 
 #define LAMBDA 0.0000000001
