@@ -45,8 +45,8 @@ class Dic {
     int oWidth = 0;
 
     //reference image vectors
-    std::vector<double> df_dx_buffer; /* (d/dx) (f) */
-    std::vector<double> df_dy_buffer; /* (d/dy) (f) */
+    double* df_dx_buffer; /* (d/dx) (f) */
+    double* df_dy_buffer; /* (d/dy) (f) */
 
     //per current image vectors
     std::vector<double> g_buffer;
@@ -61,6 +61,7 @@ class Dic {
     //output vector of cv Mat
     class_logical_array plot_calcpoints;
 
+    bool preComputeRef();
     void preCompute(std::ofstream&, std::size_t currentImage);
     void analysis(std::ofstream&, std::size_t currentImage);
     void analyzepoint(std::ofstream&, std::size_t currentImage, heap &queue, const int &x, const int &y, const std::vector<double> &paramvector_init, const int &num_region);

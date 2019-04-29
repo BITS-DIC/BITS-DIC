@@ -1,12 +1,41 @@
 ﻿#include "dic.h"
 #include "dicimage.h"
+#include "cuda.h"
+#include "cuda_runtime.h"
+#include "cuda_runtime_api.h"
+#include "device_launch_parameters.h"
+
+// Define this to turn on error checking
+#define CUDA_ERROR_CHECK
+
+#define cudaCheckError() __cudaCheckError(__FILE__, __LINE__)
+
+inline void __cudaCheckError(const char *file, const int line) {
+#ifdef CUDA_ERROR_CHECK
+    cudaError err = cudaGetLastError();
+    if (cudaSuccess != err) {
+        fprintf(stderr, "cudaCheckError() failed at %s:%i : %s\n",
+                 file, line, cudaGetErrorString(err));
+        exit(-1);
+    }
+    // More careful checking. However, this will affect performance.
+    // Comment away if needed.
+//    err = cudaDeviceSynchronize();
+//    if(cudaSuccess != err) {
+//        fprintf(stderr, "cudaCheckError() with sync failed at %s:%i : %s\n",
+//                 file, line, cudaGetErrorString( err ));
+//        exit(-1);
+//    }
+#endif
+    return;
+}
 
 Dic::Dic() {}
 
 Dic::~Dic() {
     cimgs.clear();
-    df_dx_buffer.clear();
-    df_dy_buffer.clear();
+    free(df_dx_buffer);
+    free(df_dy_buffer);
     df_dp_buffer.clear();
 
     g_buffer.clear();
@@ -34,15 +63,11 @@ void Dic::performDicAnalysis() {
     oHeight = static_cast<int>(ceil(static_cast<double>(rimg.gs.height) / static_cast<double>(params.subsetSpacing + 1)));
     oWidth = static_cast<int>(ceil(static_cast<double>(rimg.gs.width) / static_cast<double>(params.subsetSpacing + 1)));
 
-    //    of << "oHeight = " << oHeight << ", oWidth = " << oWidth << "\n";
-
-    df_dx_buffer.resize(static_cast<unsigned long int>(height * width), 0.0);
-    df_dy_buffer.resize(static_cast<unsigned long int>(height * width), 0.0);
+    df_dx_buffer = (double*) malloc(height * width * sizeof(double));
+    df_dx_buffer = (double*) malloc(height * width * sizeof(double));
 
     int radius = params.subsetSize;
-    //    of << "Subset radius set at " << radius << "\n";
 
-    //    of << "Resizing buffers\n";
     plot_calcpoints.alloc(oHeight, oWidth);
     g_buffer.resize((radius * 2 + 1) * (radius * 2 + 1), 0.0);
     df_dp_buffer.resize((radius * 2 + 1) * (radius * 2 + 1) * 6, 0.0);
@@ -68,228 +93,129 @@ void Dic::performDicAnalysis() {
         plot_corrcoef.push_back(plotcc);
         plot_validpoints.push_back(plotvp);
     }
-    //    of << "Pre compute reference image gradient\n";
-    for (int i = rimg.border_bcoef - 2; i < rimg.border_bcoef + rimg.gs.width - 2; i++) {
-        for (int j = rimg.border_bcoef - 2; j < rimg.border_bcoef + rimg.gs.height - 2; j++) {
-            // Get bspline coefficients
-            double b0 = rimg.bcoef.value[(j) + (i)*rimg.bcoef.height];
-            double b1 = rimg.bcoef.value[(j + 1) + (i)*rimg.bcoef.height];
-            double b2 = rimg.bcoef.value[(j + 2) + (i)*rimg.bcoef.height];
-            double b3 = rimg.bcoef.value[(j + 3) + (i)*rimg.bcoef.height];
-            double b4 = rimg.bcoef.value[(j + 4) + (i)*rimg.bcoef.height];
-            double b6 = rimg.bcoef.value[(j) + (i + 1) * rimg.bcoef.height];
-            double b7 = rimg.bcoef.value[(j + 1) + (i + 1) * rimg.bcoef.height];
-            double b8 = rimg.bcoef.value[(j + 2) + (i + 1) * rimg.bcoef.height];
-            double b9 = rimg.bcoef.value[(j + 3) + (i + 1) * rimg.bcoef.height];
-            double b10 = rimg.bcoef.value[(j + 5) + (i + 1) * rimg.bcoef.height];
-            double b12 = rimg.bcoef.value[(j) + (i + 2) * rimg.bcoef.height];
-            double b13 = rimg.bcoef.value[(j + 1) + (i + 2) * rimg.bcoef.height];
-            double b15 = rimg.bcoef.value[(j + 3) + (i + 2) * rimg.bcoef.height];
-            double b16 = rimg.bcoef.value[(j + 4) + (i + 2) * rimg.bcoef.height];
-            double b18 = rimg.bcoef.value[(j) + (i + 3) * rimg.bcoef.height];
-            double b19 = rimg.bcoef.value[(j + 1) + (i + 3) * rimg.bcoef.height];
-            double b20 = rimg.bcoef.value[(j + 2) + (i + 3) * rimg.bcoef.height];
-            double b21 = rimg.bcoef.value[(j + 3) + (i + 3) * rimg.bcoef.height];
-            double b22 = rimg.bcoef.value[(j + 4) + (i + 3) * rimg.bcoef.height];
-            double b24 = rimg.bcoef.value[(j) + (i + 4) * rimg.bcoef.height];
-            double b25 = rimg.bcoef.value[(j + 1) + (i + 4) * rimg.bcoef.height];
-            double b26 = rimg.bcoef.value[(j + 2) + (i + 4) * rimg.bcoef.height];
-            double b27 = rimg.bcoef.value[(j + 3) + (i + 4) * rimg.bcoef.height];
-            double b28 = rimg.bcoef.value[(j + 4) + (i + 4) * rimg.bcoef.height];
 
-            // Compute base index
-            std::size_t lind_f = (j - (rimg.border_bcoef - 2)) + (i - (rimg.border_bcoef - 2)) * rimg.gs.height;
-
-            // Compute Gradients using b-spline coefficients
-            // First order
-            df_dx_buffer[lind_f] = 0.003472222222222222 * b18 - 0.009027777777777778 * b1 - 0.003472222222222222 * b10 - 0.0003472222222222222 * b0 + 0.09027777777777778 * b19 - 0.02291666666666667 * b2 + 0.2291666666666667 * b20 + 0.09027777777777778 * b21 + 0.003472222222222222 * b22 + 0.0003472222222222222 * b24 + 0.009027777777777778 * b25 + 0.02291666666666667 * b26 + 0.009027777777777778 * b27 + 0.0003472222222222222 * b28 - 0.009027777777777778 * b3 - 0.0003472222222222222 * b4 - 0.003472222222222222 * b6 - 0.09027777777777778 * b7 - 0.2291666666666667 * b8 - 0.09027777777777778 * b9;
-            df_dy_buffer[lind_f] = 0.009027777777777778 * b10 - 0.003472222222222222 * b1 - 0.0003472222222222222 * b0 - 0.02291666666666667 * b12 - 0.2291666666666667 * b13 + 0.2291666666666667 * b15 + 0.02291666666666667 * b16 - 0.009027777777777778 * b18 - 0.09027777777777778 * b19 + 0.09027777777777778 * b21 + 0.009027777777777778 * b22 - 0.0003472222222222222 * b24 - 0.003472222222222222 * b25 + 0.003472222222222222 * b27 + 0.0003472222222222222 * b28 + 0.003472222222222222 * b3 + 0.0003472222222222222 * b4 - 0.009027777777777778 * b6 - 0.09027777777777778 * b7 + 0.09027777777777778 * b9;
-        }
+    bool result = preComputeRef();
+    if(!result) {
+        printf("Error in precompute");
+        return;
     }
-
-    //-----hardcoded
-    {
-        std::vector<double> s;
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.095840425430045839139125973816);
-        s.push_back(-0.732317866870052736061325049377);
-        s.push_back(0.001821096044614556319629627978);
-        s.push_back(-0.000545352506291277706711173590);
-        s.push_back(-0.000427246325667928763224201472);
-        s.push_back(-0.000202669893530904587919394544);
-        s.push_back(0.004202853127554376233554478404);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.167313908224413387948459330801);
-        s.push_back(-1.588064705986378166713279824762);
-        s.push_back(0.000609349652546109510353744554);
-        s.push_back(-0.001416492698193724721761332930);
-        s.push_back(-0.001369838131914909292938253849);
-        s.push_back(0.001396967298978202265402615012);
-        s.push_back(0.005187581801706664733075946572);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.297625267818690641963286225291);
-        s.push_back(-2.597216378481681964274230267620);
-        s.push_back(0.000835659166694702193467492179);
-        s.push_back(-0.000897108980918165680937259587);
-        s.push_back(-0.001441745481586308944704777346);
-        s.push_back(0.000790569004959884580330253812);
-        s.push_back(0.005965394530639114845094184147);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.427383275303523990640286456255);
-        s.push_back(-3.546009782202506066539626772283);
-        s.push_back(0.000745481215133292351993077318);
-        s.push_back(0.000361092071449245206708755784);
-        s.push_back(-0.001402544529483555450777299001);
-        s.push_back(0.002448386062763763248995019239);
-        s.push_back(0.005392031209876273732672924410);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.512351662610064484404404083762);
-        s.push_back(-4.574333149973885070949108921923);
-        s.push_back(0.001223823979220606261719694885);
-        s.push_back(0.000190720397147182616198052285);
-        s.push_back(-0.001459134387936082948716842722);
-        s.push_back(0.002653694524215932659672034788);
-        s.push_back(0.005608445252079081663754145382);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.540872588977671764354226979776);
-        s.push_back(-5.582713974833469094960491929669);
-        s.push_back(0.001202174129782296319035594934);
-        s.push_back(0.000677181857243697583707831011);
-        s.push_back(-0.002050107516048345780018680173);
-        s.push_back(0.002423010817783621817511630070);
-        s.push_back(0.005607845557184478434142871350);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.596369490414699332525572117447);
-        s.push_back(-6.650732552052091683947310229996);
-        s.push_back(-0.000180296048918671125704804581);
-        s.push_back(-0.000073029704477226332101462425);
-        s.push_back(-0.001711469228851091256907168692);
-        s.push_back(0.002155436157423196164018008858);
-        s.push_back(0.005679640573269848814741411758);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.663880440211723210630623270845);
-        s.push_back(-7.803851550874771447752209496684);
-        s.push_back(0.001810348482710555373387251166);
-        s.push_back(0.000762743938499883247436605949);
-        s.push_back(-0.000917562930250373823791443240);
-        s.push_back(0.004300692980042652990846363537);
-        s.push_back(0.005145314047186329287075778893);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.717766282438922487152410667477);
-        s.push_back(-8.993500643510536463054449995980);
-        s.push_back(0.000273138485438417788486731297);
-        s.push_back(0.000994990661155167573428959038);
-        s.push_back(-0.000914095651979697628938814624);
-        s.push_back(0.003550113402470689294432304450);
-        s.push_back(0.004564473308980217594599260167);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.887632805087676279853781124984);
-        s.push_back(-10.228279723433015391265143989585);
-        s.push_back(-0.001147584921972311100546448870);
-        s.push_back(-0.000131280343749426984308742439);
-        s.push_back(-0.003427160335113154081970732179);
-        s.push_back(0.004407954973728811509658953582);
-        s.push_back(0.004632741646495763289392844086);
-        seed_info.push_back(s);
-        s.clear();
-
-        s.push_back(187.000000000000000000000000000000);
-        s.push_back(330.000000000000000000000000000000);
-        s.push_back(-0.851161352505980350890979480027);
-        s.push_back(-10.318876002816340431422759138513);
-        s.push_back(-0.000476687102692108233270573692);
-        s.push_back(0.000434197214999161530592924896);
-        s.push_back(-0.000857015047537299868088411792);
-        s.push_back(0.005297081460698738197834245511);
-        s.push_back(0.004557846047304266352828694409);
-        seed_info.push_back(s);
-        s.clear();
-
-
-    }
-    //
-    double overhead = clock() - start;
-    overhead /= CLOCKS_PER_SEC;
-    //of << "Overhead time was " << overhead << "\n";
-    // Dic for each current image
+    /*// Dic for each current image
     for (std::size_t i = 0; i < cimgs.size(); i++) {
-        //        of << "Start dic for current image #" << i << "--------------------------------------------------------------\n";
-        //        of << "Precompute for g(" << i << ")\n";
-        double yime = clock();
         preCompute(of, i);
-        //        of << "Precompute took " << ((clock() - yime) / CLOCKS_PER_SEC) << "s\n";
-        // matchSeed(i);
-
-        //        of << "Setting roi cirroi\n";
         roi.set_cirroi(radius);
         analysis(of, i);
         plot_calcpoints.reset();
-        //of << ((clock() - yime) / CLOCKS_PER_SEC) << "\n";
     }
-    std::ofstream file("plots");
-    for (int i = 0; i < cimgs.size(); i++) {
-        file << "Analysis over! Printing plotu/plotv/plotcorr for first curr image only\n\n";
-        for (int r = 0; r < plot_u[i].height; r++) {
-            for (int c = 0; c < plot_u[i].width; c++) {
-                file << plot_u[i].value[r + c * plot_u[i].height] << " ";
-            }
-            file << "\n";
-        }
-        file << "\n";
-        for (int r = 0; r < plot_v[i].height; r++) {
-            for (int c = 0; c < plot_v[i].width; c++) {
-                file << plot_v[i].value[r + c * plot_v[i].height] << " ";
-            }
-            file << "\n";
-        }
-        file << "\n";
-        for (int r = 0; r < plot_corrcoef[i].height; r++) {
-            for (int c = 0; c < plot_corrcoef[i].width; c++) {
-                file << plot_corrcoef[i].value[r + c * plot_corrcoef[i].height] << " ";
-            }
-            file << "\n";
-        }
-        file << "\n";
+    of.close();*/
+}
+
+__global__
+void pcrKernel(double* df_dx_buffer, double* df_dy_buffer,
+               int f_height, int f_width,
+               double* bcoef, int b_height, int border_bcoef,
+               int offset) {
+    //bounds
+    int li = border_bcoef - 2;
+    int ri = border_bcoef + f_width - 1;
+    int lj = border_bcoef - 2;
+    int rj = border_bcoef + f_height - 1;
+
+    int rows = (border_bcoef + f_width - 1) - (border_bcoef - 2) + 1;
+    int cols = (border_bcoef + f_height - 1) - (border_bcoef - 2) + 1;
+
+    //init with 0 based indexing, then add border_bcoef info
+    int i = (offset + threadIdx.x) / cols;
+    int j = (offset + threadIdx.x) % cols;
+
+    //give proper final value
+    i += li;
+    j += lj;
+
+    if(i > ri || j > rj) return;
+
+    double b0 = bcoef[(j) + (i) * b_height];
+    double b1 = bcoef[(j + 1) + (i) * b_height];
+    double b2 = bcoef[(j + 2) + (i) * b_height];
+    double b3 = bcoef[(j + 3) + (i) * b_height];
+    double b4 = bcoef[(j + 4) + (i) * b_height];
+    double b6 = bcoef[(j) + (i + 1) * b_height];
+    double b7 = bcoef[(j + 1) + (i + 1) * b_height];
+    double b8 = bcoef[(j + 2) + (i + 1) * b_height];
+    double b9 = bcoef[(j + 3) + (i + 1) * b_height];
+    double b10 = bcoef[(j + 5) + (i + 1) * b_height];
+    double b12 = bcoef[(j) + (i + 2) * b_height];
+    double b13 = bcoef[(j + 1) + (i + 2) * b_height];
+    double b15 = bcoef[(j + 3) + (i + 2) * b_height];
+    double b16 = bcoef[(j + 4) + (i + 2) * b_height];
+    double b18 = bcoef[(j) + (i + 3) * b_height];
+    double b19 = bcoef[(j + 1) + (i + 3) * b_height];
+    double b20 = bcoef[(j + 2) + (i + 3) * b_height];
+    double b21 = bcoef[(j + 3) + (i + 3) * b_height];
+    double b22 = bcoef[(j + 4) + (i + 3) * b_height];
+    double b24 = bcoef[(j) + (i + 4) * b_height];
+    double b25 = bcoef[(j + 1) + (i + 4) * b_height];
+    double b26 = bcoef[(j + 2) + (i + 4) * b_height];
+    double b27 = bcoef[(j + 3) + (i + 4) * b_height];
+    double b28 = bcoef[(j + 4) + (i + 4) * b_height];
+
+    // Compute base index
+    std::size_t lind_f = (j - (border_bcoef - 2)) + (i - (border_bcoef - 2)) * f_height;
+
+    // Compute Gradients using b-spline coefficients
+    // First order
+    df_dx_buffer[lind_f] = 0.003472222222222222 * b18 - 0.009027777777777778 * b1 - 0.003472222222222222 * b10 - 0.0003472222222222222 * b0 + 0.09027777777777778 * b19 - 0.02291666666666667 * b2 + 0.2291666666666667 * b20 + 0.09027777777777778 * b21 + 0.003472222222222222 * b22 + 0.0003472222222222222 * b24 + 0.009027777777777778 * b25 + 0.02291666666666667 * b26 + 0.009027777777777778 * b27 + 0.0003472222222222222 * b28 - 0.009027777777777778 * b3 - 0.0003472222222222222 * b4 - 0.003472222222222222 * b6 - 0.09027777777777778 * b7 - 0.2291666666666667 * b8 - 0.09027777777777778 * b9;
+    df_dy_buffer[lind_f] = 0.009027777777777778 * b10 - 0.003472222222222222 * b1 - 0.0003472222222222222 * b0 - 0.02291666666666667 * b12 - 0.2291666666666667 * b13 + 0.2291666666666667 * b15 + 0.02291666666666667 * b16 - 0.009027777777777778 * b18 - 0.09027777777777778 * b19 + 0.09027777777777778 * b21 + 0.009027777777777778 * b22 - 0.0003472222222222222 * b24 - 0.003472222222222222 * b25 + 0.003472222222222222 * b27 + 0.0003472222222222222 * b28 + 0.003472222222222222 * b3 + 0.0003472222222222222 * b4 - 0.009027777777777778 * b6 - 0.09027777777777778 * b7 + 0.09027777777777778 * b9;
+}
+
+bool Dic::preComputeRef() {
+    //copy reference image to device
+    //stl is not directly supported in cuda
+    printf("Precomputing reference image\n");
+    double* device_df_dx_buffer;
+    double* device_df_dy_buffer;
+
+    int size = rimg.gs.height * rimg.gs.width;
+
+    //allocate memory in device
+    if(cudaSuccess != cudaMalloc(&device_df_dx_buffer, size * sizeof(double))) return false;
+    if(cudaSuccess != cudaMalloc(&device_df_dy_buffer, size * sizeof(double))) return false;
+
+    //see https://devtalk.nvidia.com/default/topic/465306/using-std-vector-in-cuda-kernel-its-posible-to-use-a-std-vector-inside-cuda-kernel-/
+    //if(cudaSuccess != cudaMemcpy(device_df_dx_buffer, &df_dx_buffer[0], size * sizeof(double), cudaMemcpyHostToDevice)) return false;
+    //if(cudaSuccess != cudaMemcpy(device_df_dy_buffer, &df_dy_buffer[0], size * sizeof(double), cudaMemcpyHostToDevice)) return false;
+    double* device_rimg_bcoef_value;
+
+    //top level class malloc
+    int bcoefSize = (rimg.gs.height + 2 * rimg.border_bcoef) * (rimg.gs.width + 2 * rimg.border_bcoef);
+    if(cudaSuccess != cudaMalloc(&device_rimg_bcoef_value, bcoefSize * sizeof(double))) return false;
+
+    //memcpy class_img
+    if(cudaSuccess != cudaMemcpy(device_rimg_bcoef_value, rimg.bcoef.value,
+                                 bcoefSize * sizeof(double), cudaMemcpyHostToDevice)) return false;
+
+    int threads = 512;
+    int rows = (rimg.border_bcoef + rimg.gs.width - 1) - (rimg.border_bcoef - 2) + 1;
+    int cols = (rimg.border_bcoef + rimg.gs.height - 1) - (rimg.border_bcoef - 2) + 1;
+    int pSize = rows * cols;
+    int iterations = pSize / threads + (pSize % threads != 0);
+
+    for(int i = 0, offset = 0; i < iterations; i++, offset += threads) {
+        pcrKernel<<<1, threads>>>(device_df_dx_buffer, device_df_dy_buffer,
+                                  rimg.gs.height, rimg.gs.width,
+                                  device_rimg_bcoef_value, rimg.bcoef.height, rimg.border_bcoef,
+                                  offset);
     }
-    file.close();
-    of.close();
+    cudaDeviceSynchronize();
+    cudaCheckError();
+    //get back results
+    if(cudaSuccess != cudaMemcpy(df_dx_buffer, device_df_dx_buffer, size * sizeof(double), cudaMemcpyDeviceToHost)) return false;
+    if(cudaSuccess != cudaMemcpy(df_dy_buffer, device_df_dy_buffer, size * sizeof(double), cudaMemcpyDeviceToHost)) return false;
+
+    //free resources
+    cudaFree(device_df_dx_buffer);
+    cudaFree(device_df_dy_buffer);
+    cudaFree(device_rimg_bcoef_value);
+    return true;
 }
 
 void Dic::preCompute(std::ofstream &of, std::size_t currImg) {
@@ -298,12 +224,12 @@ void Dic::preCompute(std::ofstream &of, std::size_t currImg) {
     for (int i = 0; i < cimgs[currImg].bcoef.width - 5; i++) {
         for (int j = 0; j < height - 5; j++) {
             // Get bspline coefficients
-            double b0 = cimgs[currImg].bcoef.value[(j) + (i)*height];
-            double b1 = cimgs[currImg].bcoef.value[(j + 1) + (i)*height];
-            double b2 = cimgs[currImg].bcoef.value[(j + 2) + (i)*height];
-            double b3 = cimgs[currImg].bcoef.value[(j + 3) + (i)*height];
-            double b4 = cimgs[currImg].bcoef.value[(j + 4) + (i)*height];
-            double b5 = cimgs[currImg].bcoef.value[(j + 5) + (i)*height];
+            double b0 = cimgs[currImg].bcoef.value[(j) + (i) * height];
+            double b1 = cimgs[currImg].bcoef.value[(j + 1) + (i) * height];
+            double b2 = cimgs[currImg].bcoef.value[(j + 2) + (i) * height];
+            double b3 = cimgs[currImg].bcoef.value[(j + 3) + (i) * height];
+            double b4 = cimgs[currImg].bcoef.value[(j + 4) + (i) * height];
+            double b5 = cimgs[currImg].bcoef.value[(j + 5) + (i) * height];
             double b6 = cimgs[currImg].bcoef.value[(j) + (i + 1) * height];
             double b7 = cimgs[currImg].bcoef.value[(j + 1) + (i + 1) * height];
             double b8 = cimgs[currImg].bcoef.value[(j + 2) + (i + 1) * height];

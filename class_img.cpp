@@ -8,6 +8,14 @@ class_img::class_img() {
     border_bcoef = 0;
 }
 
+class_img::class_img(const class_img &ci2) {
+    max_gs = ci2.max_gs;
+    border_bcoef = ci2.border_bcoef;
+    name = ci2.name;
+    gs = ci2.gs;
+    bcoef = ci2.bcoef;
+}
+
 class_img::class_img(cv::Mat input, std::string name) {
     this->name = name;
     max_gs = 0.0;
