@@ -4,8 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui \
-                widgets
+QT += core gui widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -18,6 +17,7 @@ TEMPLATE = app
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
+CONFIG += console
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.

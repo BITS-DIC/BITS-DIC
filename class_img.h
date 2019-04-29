@@ -10,7 +10,7 @@ public:
     // Constructor
     class_img();    // THREADSAFE
     class_img(cv::Mat,std::string);
-
+    class_img(const class_img &img2);
     // Properties
     std::string name;
     class_double_array gs;
